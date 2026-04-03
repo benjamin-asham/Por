@@ -2,6 +2,7 @@
 <html lang="en" dir="ltr" data-theme="dark" data-devmode="off">
 <head>
 <meta charset="UTF-8"/>
+<link rel="shortcut icon" href="B logo .png" type="image/x-icon">
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Benjamin Asham — Full Stack .NET Developer</title>
 <link rel="shortcut icon" href="B logo .png" type="image/x-icon">
@@ -830,7 +831,7 @@ footer{padding:18px clamp(16px,4vw,56px);border-top:1px solid var(--brd);backgro
   <div class="ct-grid">
     <div class="rv">
       <div style="border:1px solid var(--brd);overflow:hidden;margin-bottom:10px">
-        <div class="ct-item"><span class="lbl" style="min-width:60px" data-en="Email" data-ar="البريد">Email</span><a href="mailto:baneamenasham953@gmail.com">baneamenasham953@gmail.com</a></div>
+        <div class="ct-item"><span class="lbl" style="min-width:60px" data-en="Email" data-ar="البريد">Email</span><a href="/cdn-cgi/l/email-protection#7614171813171b131817051e171b4f434536111b171f1a5815191b"><span class="__cf_email__" data-cfemail="2446454a414549414a45574c45491d1117644349454d480a474b49">[email&#160;protected]</span></a></div>
         <div class="ct-item"><span class="lbl" style="min-width:60px">LinkedIn</span><a href="https://www.linkedin.com/in/benjaminasham" target="_blank" rel="noopener">linkedin.com/in/benjaminasham</a></div>
         <div class="ct-item"><span class="lbl" style="min-width:60px">GitHub</span><a href="https://github.com/benjamin-asham" target="_blank" rel="noopener">github.com/benjamin-asham</a></div>
         <div class="ct-item" style="border-bottom:none"><span class="lbl" style="min-width:60px">WhatsApp</span><a href="https://wa.me/201278415167" target="_blank" rel="noopener">+20 127 841 5167</a></div>
@@ -873,7 +874,7 @@ footer{padding:18px clamp(16px,4vw,56px);border-top:1px solid var(--brd);backgro
   </div>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── THEME ──
 const htmlEl = document.documentElement;
 function applyTheme(t){
@@ -1046,12 +1047,119 @@ function typeNextLine(){
   typeChar();
 }
 
-// Start typing when section in view
-const lco=new IntersectionObserver(entries=>{
-  if(entries[0].isIntersecting)startTyping();
-},{threshold:0.3});
-const lcsec=document.getElementById('livecode');
-if(lcsec)lco.observe(lcsec);
-</script>
-</body>
-</html>
+// ── SOUND ENGINE ──
+const SFX = (() => {
+  let ctx = 1;
+  function getCtx() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    return ctx;
+  }
+
+  function play(type, opts = {}) {
+    try {
+      const ac = getCtx();
+      const { freq = 440, freq2 = freq, dur = 0.12, vol = 0.18, wave = 'sine', attack = 0.005, decay = 0.08 } = opts;
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.type = wave;
+      osc.frequency.setValueAtTime(freq, ac.currentTime);
+      if (freq2 !== freq) osc.frequency.exponentialRampToValueAtTime(freq2, ac.currentTime + dur);
+      gain.gain.setValueAtTime(0, ac.currentTime);
+      gain.gain.linearRampToValueAtTime(vol, ac.currentTime + attack);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur);
+      osc.start(ac.currentTime);
+      osc.stop(ac.currentTime + dur + 0.02);
+    } catch(e) {}
+  }
+
+  return {
+    // soft click / nav hover
+    tick:   () => play('tick',   { freq: 900, freq2: 800, dur: 0.06, vol: 0.10, wave: 'sine', attack: 0.003 }),
+    // button press
+    click:  () => play('click',  { freq: 520, freq2: 460, dur: 0.10, vol: 0.15, wave: 'triangle', attack: 0.005 }),
+    // section enter (scroll reveal)
+    reveal: () => play('reveal', { freq: 380, freq2: 520, dur: 0.18, vol: 0.08, wave: 'sine', attack: 0.01 }),
+    // accordion open
+    open:   () => play('open',   { freq: 440, freq2: 660, dur: 0.20, vol: 0.13, wave: 'sine', attack: 0.008 }),
+    // accordion close
+    close:  () => play('close',  { freq: 550, freq2: 360, dur: 0.18, vol: 0.12, wave: 'sine', attack: 0.008 }),
+    // theme / devmode toggle  (two-tone sweep)
+    toggle: () => {
+      play('t1', { freq: 300, freq2: 600, dur: 0.15, vol: 0.12, wave: 'sine', attack: 0.005 });
+      setTimeout(() => play('t2', { freq: 600, freq2: 900, dur: 0.12, vol: 0.09, wave: 'sine', attack: 0.003 }), 120);
+    },
+    // marquee hover
+    hover:  () => play('hover',  { freq: 700, freq2: 680, dur: 0.05, vol: 0.07, wave: 'sine', attack: 0.002 }),
+  };
+})();
+
+// ── WIRE UP SOUNDS ──
+
+// Nav links – subtle tick on hover
+document.querySelectorAll('.nav-a, .ma').forEach(el => {
+  el.addEventListener('mouseenter', () => SFX.tick());
+});
+
+// Buttons – click sound
+document.querySelectorAll('.btn-p, .btn-g').forEach(el => {
+  el.addEventListener('click', () => SFX.click());
+});
+
+// Icon buttons (theme, lang, hamburger, devmode)
+document.querySelectorAll('.ib, .lang-btn').forEach(el => {
+  el.addEventListener('click', () => SFX.toggle());
+});
+// Dev mode button specifically
+const devBtnEl = document.getElementById('dev-btn');
+if (devBtnEl) devBtnEl.addEventListener('click', () => SFX.toggle());
+
+// Project accordion – patch toggleP
+const _origToggleP = window.toggleP;
+window.toggleP = function(bid, tid) {
+  const body = document.getElementById(bid);
+  const wasOpen = body && body.classList.contains('open');
+  _origToggleP(bid, tid);
+  wasOpen ? SFX.close() : SFX.open();
+};
+
+// Scroll reveal – soft sound when element enters view
+const roSound = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      SFX.reveal();
+      roSound.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -30px 0px' });
+
+// Only attach to major section headings to avoid audio overload
+document.querySelectorAll('.sec-label, .hero-eyebrow').forEach(el => roSound.observe(el));
+
+// Scroll indicator line – tick on scroll direction change
+let lastScrollY = window.scrollY, scrollDir = 0;
+window.addEventListener('scroll', () => {
+  const dir = window.scrollY > lastScrollY ? 1 : -1;
+  if (dir !== scrollDir) { scrollDir = dir; SFX.tick(); }
+  lastScrollY = window.scrollY;
+}, { passive: true });
+
+// Marquee items hover
+document.querySelectorAll('.mq-i').forEach(el => {
+  el.addEventListener('mouseenter', () => SFX.hover());
+});
+
+// Stat items hover
+document.querySelectorAll('.stat-i').forEach(el => {
+  el.addEventListener('mouseenter', () => SFX.tick());
+});
+
+// Start typing when it comes into view (already handled above), just add sound trigger
+const vscSection = document.getElementById('livecode');
+if (vscSection) {
+  const vscObs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { SFX.reveal(); vscObs.unobserve(e.target); } });
+  }, { threshold: 0.2 });
+  vscObs.observe(vscSection);
+}
